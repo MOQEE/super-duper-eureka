@@ -1,0 +1,299 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+const int N = 50, M = 2000;
+
+typedef struct ShoppingItem
+{
+    char name[50]; // 商品名称
+    int quantity; // 商品数量
+    struct ShoppingItem *next;
+}Node;
+
+//创建链表头指针，表示购物清单的起始点：
+Node *shoppinglist = NULL;
+Node *shoppinglist2 = NULL;
+
+//1.添加商品到购物清单：
+void addItem(char ItemName[], int itemQuantity)
+{
+    Node *newItem = (Node *)malloc(sizeof(Node));
+
+    //这里使用头插法创建单链表：
+    strcpy(newItem->name, ItemName);
+
+    newItem->quantity = itemQuantity;
+    if(shoppinglist == NULL) {
+        shoppinglist = newItem;
+        newItem->next = NULL;
+        shoppinglist->next = NULL;
+    }
+    else {
+        newItem->next = shoppinglist;
+        shoppinglist = newItem;
+    }
+}
+
+//2.从购物清单中移除商品：
+void removeItem(char itemName[])
+{
+    Node *current = shoppinglist;
+    Node *previous = NULL;
+
+    while (current != NULL) {
+        if (strcmp(current->name, itemName) == 0) {
+            if (previous != NULL) previous->next = current->next;
+            else 
+                shoppinglist = current->next;
+            free(current);
+            break;                
+        }
+        previous = current;
+        current = current->next;        
+    }
+}
+
+//3.查看购物清单：
+void displaylist()
+{
+    Node *current = shoppinglist;
+
+    printf("购物清单:\n");
+    while (current != NULL)
+    {
+        printf("%s - 数量: %d\n", current->name, current->quantity);
+        current = current->next;
+    }
+}
+
+//4.修改购物清单中商品的数量：
+void updateQuantity(char itemName[], int newItemQuantity)
+{
+    Node *current = shoppinglist;
+
+    while (current != NULL)
+    {
+        if (strcmp(current->name, itemName) == 0)
+        {
+            current->quantity = newItemQuantity;
+            break;
+        }
+        current = current->next;
+    }
+}
+
+//5.清空购物清单：
+void clearlist()
+{
+    while (shoppinglist != NULL)
+    {
+        Node *temp = shoppinglist;
+        shoppinglist = shoppinglist->next;
+        free(temp);
+    }
+}
+
+//6.计算购物清单中商品的总数量：
+int totalQuantity()
+{
+    Node *current = shoppinglist;
+    int total = 0;
+
+    while (current != NULL)
+    {
+        total ++;
+        current = current->next;
+    }
+
+    return total;
+}
+
+//7.查找购物清单中的商品：
+void findItem(char itemName[])
+{
+    Node *current = shoppinglist;
+
+    printf("查找商品\"%s\" : \n", itemName);
+    while (current != NULL)
+    {
+        if (strcmp(current->name, itemName) == 0)
+        {
+            printf("%s - 数量: %d\n", current->name, current->quantity);
+            return;
+        }
+        current = current->next;
+    }
+
+    printf("未找到商品\"%s\"。 \n", itemName);
+}
+
+//8.排序购物清单：
+void sortlist()
+{
+    Node *current = shoppinglist;
+    Node *nextItem = NULL;
+    char tempName[50];
+    int tempQuantity;
+
+    while (current != NULL) {
+        nextItem = current -> next;
+
+        while (nextItem != NULL) {
+            if (strcmp(current->name, nextItem->name) > 0)
+            {
+                strcpy(tempName, current->name);
+                strcpy(current->name, nextItem->name);
+                strcpy(nextItem->name, tempName);
+
+                tempQuantity = current->quantity;
+                current->quantity = nextItem->quantity;
+                nextItem->quantity = tempQuantity;
+            }
+            nextItem = nextItem->next;
+        }
+        current = current->next;
+    }
+}
+
+//9.合并购物清单：
+void mergelists(Node *list1, Node *list2)
+{
+    Node *current = list1;
+    //遍历第一个购物清单到末尾
+    while (current->next != NULL) {
+        current = current->next;
+    }
+    //将第二个购物清单连接到第一个购物清单的末尾
+    current->next = list2;
+    list2 = NULL;//清空第二个购物清单的头指针， 防止误用
+}
+
+//10.删除购物清单中的商品：
+void deleteItem(char itemName[], int deleteALL)
+{
+    Node *current = shoppinglist;
+    Node *prev = NULL;
+
+    while (current != NULL) {
+        if (strcmp(current->name, itemName) == 0) {
+            if (prev == NULL) {
+                //如果要删除的是第一个节点
+                Node *temp = shoppinglist;
+                current = shoppinglist = shoppinglist->next;
+                free(temp);
+                if (!deleteALL) break;
+            }
+            else {
+                //如果删除的不是第一个节点
+                prev->next = current->next;
+                free(current);
+                current = prev->next;
+                if (!deleteALL) break;
+            }
+        }
+        else {
+            prev = current;
+            current = current->next;
+        }
+    }
+}
+
+/*本题输入自测输入数据：
+10
+l0 1
+l1 1
+l2 2
+l3 3
+l4 4
+l5 5
+l6 6
+l7 7
+l8 8
+l9 9
+*/
+
+/*本题自测list2为：
+itemname[0] 3
+itemname[0] 3
+itemname[0] 3
+*/
+
+//数据均可在对应地方修改和操作，只要合法即可，同时数据范围可通过修改宏定义的 N 和 M 来改变；
+
+
+int main()
+{
+    //简单调用函数调试程序
+    printf("输入商品数目：\n");
+    int n;//商品数目
+    char itemname[M][N];//商品名称
+    int itemcnt; //商品数目
+
+    scanf("%d", &n);
+
+    for (int i = 0; i < n; i ++ ) 
+    {    
+        scanf("%s%d", itemname[i], &itemcnt);
+        addItem(itemname[i], itemcnt);
+    }
+    
+    //查看购物清单：
+    displaylist();
+    printf("\n");
+
+    //删掉第1件商品，商品下标从0开始。
+    printf("删掉第itemname[1]商品:\n");
+    removeItem(itemname[1]);
+
+    //查看购物清单：
+    displaylist();
+    printf("\n");
+
+    //把第0件商品数量改为100;
+    printf("把第0件商品数量改为100\n");
+    updateQuantity(itemname[0], 100);
+
+    //查看购物清单：
+    displaylist();
+    printf("\n");    
+
+    printf("计算购物清单中商品的总数量 = %d\n", totalQuantity());
+
+    printf("查找3号商品:\n");
+    findItem(itemname[3]);
+
+    printf("对商品清单进行排序");
+    sortlist();
+
+    //查看购物清单：
+    displaylist();
+    printf("\n");    
+
+    printf("创建list2:\n");
+    for (int i = 0; i < 3; i ++)
+        addItem(itemname[0], 3);
+
+    Node *list1 = shoppinglist, *list2 = shoppinglist2;
+    printf("合并list1和list2:\n");
+    mergelists(list1, list2);
+
+    //查看购物清单：
+    displaylist();
+    printf("\n");    
+    
+
+    printf("删除所有名称为itemname[0]的商品\n");
+    deleteItem(itemname[0], 1);
+
+    //查看购物清单：
+    displaylist();
+    printf("\n");      
+
+    printf ("清空: \n");
+    clearlist();
+
+    //查看购物清单：
+    displaylist();
+    printf("\n");     
+    return 0;
+}
